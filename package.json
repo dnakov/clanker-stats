@@ -13,5 +13,13 @@
     "@resvg/resvg-js": "^2",
     "fast-glob": "^3"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dnakov/clanker-stats.git"
+  },
+  "homepage": "https://github.com/dnakov/clanker-stats",
+  "bugs": {
+    "url": "https://github.com/dnakov/clanker-stats/issues"
+  }
 }
