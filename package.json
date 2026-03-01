@@ -1,6 +1,6 @@
 {
   "name": "clanker-stats",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "See how many tokens you've burned across AI coding tools",
   "type": "module",
   "bin": {

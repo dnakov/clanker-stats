@@ -304,7 +304,6 @@ function openPath(target) {
 async function main() {
   const share = process.argv.includes("--share")
   const results = []
-
   for (const tool of tools) {
     try {
       const counts = await tool.collect()
