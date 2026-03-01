@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 
 import { readFile, writeFile } from "node:fs/promises"
+import { createReadStream } from "node:fs"
+import { createInterface } from "node:readline"
 import { homedir } from "node:os"
 import { join } from "node:path"
 import { execFileSync } from "node:child_process"
@@ -42,21 +44,23 @@ async function collectCodex() {
   const counts = new Map()
   const dir = join(home, ".codex", "sessions")
   for (const path of await fg("**/*.jsonl", { cwd: dir })) {
-    const text = await readFile(join(dir, path), "utf-8")
-    let prevCumulative = null
-    for (const line of text.split("\n")) {
-      if (!line.includes('"token_count"')) continue
-      try {
-        const obj = JSON.parse(line)
-        if (obj.payload?.type !== "token_count") continue
-        const cumTotal = obj.payload.info?.total_token_usage?.total_tokens
-        if (cumTotal != null && cumTotal === prevCumulative) continue
-        let tokens = obj.payload.info?.last_token_usage?.total_tokens
-        if (!tokens && cumTotal != null && prevCumulative != null) tokens = cumTotal - prevCumulative
-        if (cumTotal != null) prevCumulative = cumTotal
-        if (tokens > 0 && obj.timestamp) add(counts, isoToDate(obj.timestamp), tokens)
-      } catch {}
-    }
+    try {
+      const rl = createInterface({ input: createReadStream(join(dir, path)), crlfDelay: Infinity })
+      let prevCumulative = null
+      for await (const line of rl) {
+        if (!line.includes('"token_count"')) continue
+        try {
+          const obj = JSON.parse(line)
+          if (obj.payload?.type !== "token_count") continue
+          const cumTotal = obj.payload.info?.total_token_usage?.total_tokens
+          if (cumTotal != null && cumTotal === prevCumulative) continue
+          let tokens = obj.payload.info?.last_token_usage?.total_tokens
+          if (!tokens && cumTotal != null && prevCumulative != null) tokens = cumTotal - prevCumulative
+          if (cumTotal != null) prevCumulative = cumTotal
+          if (tokens > 0 && obj.timestamp) add(counts, isoToDate(obj.timestamp), tokens)
+        } catch {}
+      }
+    } catch {}
   }
   return counts
 }
