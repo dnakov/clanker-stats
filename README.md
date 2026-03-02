@@ -30,3 +30,4 @@ Copies the chart to your clipboard, opens X with a pre-filled post. Just paste a
 | Gemini CLI | `~/.gemini/tmp/` |
 | Amp | `~/.local/share/amp/threads/` |
 | Pi | `~/.pi/agent/sessions/` |
+| Mistral Vibe | `~/.vibe/logs/session/` |
