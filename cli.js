@@ -337,13 +337,27 @@ function formatHours(h) {
   return Math.round(h * 60) + "m"
 }
 
+const resvgFontOpts = { loadSystemFonts: true }
+
+function canRenderDot(fontFamily) {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"><text x="0" y="15" fill="white" font-size="15" font-family="${fontFamily}">.</text></svg>`
+  const { pixels } = new Resvg(svg, { font: resvgFontOpts }).render()
+  for (let i = 3; i < pixels.length; i += 4) if (pixels[i] > 0) return true
+  return false
+}
+
+function pickFont(candidates) {
+  for (const f of candidates) if (canRenderDot(f)) return f
+  return candidates[candidates.length - 1]
+}
+
 function renderChart(allDays, results, total, { unit = "TOKENS", cmd = "npx clanker-stats --share", formatVal = formatTotal } = {}) {
   const W = 1500, H = 560
   const pad = { top: 130, right: 50, bottom: 60, left: 50 }
   const chartW = W - pad.left - pad.right
   const chartH = H - pad.top - pad.bottom
-  const font = `'Berkeley Mono', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif`
-  const mono = `'Berkeley Mono', 'SF Mono', 'Fira Code', monospace`
+  const font = pickFont(['Berkeley Mono', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Noto Sans', 'sans-serif'])
+  const mono = pickFont(['Berkeley Mono', 'SF Mono', 'Fira Code', 'Noto Sans Mono', 'monospace'])
 
   const numWeeks = Math.ceil(allDays.length / 7)
   const toolWeekly = results.map(r => {
@@ -503,7 +517,7 @@ async function main() {
   console.log(`\n${allDays.length} days, ${hours ? formatHours(total) : formatTotal(total) + " total tokens"}`)
 
   const svg = renderChart(allDays, results, total, chartOpts)
-  const resvg = new Resvg(svg, { fitTo: { mode: "width", value: 1500 } })
+  const resvg = new Resvg(svg, { fitTo: { mode: "width", value: 1500 }, font: resvgFontOpts })
   const png = resvg.render().asPng()
 
   const outPath = join(process.cwd(), "chart.png")
